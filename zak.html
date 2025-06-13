@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Access</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #000000;
+            color: #0f0;
+            line-height: 1.4;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        
+        .terminal {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .prompt {
+            color: #0f0;
+            margin-bottom: 10px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 15px;
+            background-color: #0f0;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .command {
+            color: #0f0;
+            background: transparent;
+            border: none;
+            width: 80%;
+            outline: none;
+            font-size: 16px;
+            caret-color: #0f0;
+        }
+        
+        .output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        .matrix-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        
+        .access-denied {
+            color: #f00;
+            text-align: center;
+            margin-top: 50px;
+            font-size: 24px;
+            text-shadow: 0 0 5px #f00;
+            display: none;
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #f00;
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #0ff;
+            animation: glitch-anim 1s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(32px, 9999px, 12px, 0); }
+            20% { clip: rect(8px, 9999px, 96px, 0); }
+            40% { clip: rect(48px, 9999px, 46px, 0); }
+            60% { clip: rect(62px, 9999px, 29px, 0); }
+            80% { clip: rect(84px, 9999px, 16px, 0); }
+            100% { clip: rect(91px, 9999px, 98px, 0); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #111;
+            margin: 20px 0;
+            border: 1px solid #0f0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            width: 0;
+            background-color: #0f0;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix" class="matrix-effect"></canvas>
+    
+    <div class="terminal">
+        <div class="output">
+            <p>Initializing system...</p>
+            <p>Bypassing security protocols...</p>
+            <p>Establishing connection...</p>
+            <p>> Connection established</p>
+            <p>> Welcome to SYSTEM_ACCESS</p>
+            <p>> Type 'help' for available commands</p>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+        
+        <div class="prompt">
+            root@system:~$ <input type="text" class="command" id="command" autofocus>
+            <span class="cursor"></span>
+        </div>
+        
+        <div class="access-denied" id="accessDenied">
+            <div class="glitch" data-text="ACCESS DENIED">ACCESS DENIED</div>
+            <p>Unauthorized access attempt detected</p>
+            <p>Terminating connection...</p>
+        </div>
+    </div>
+    
+    <script>
+        // Matrix effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        
+        const alphabet = katakana + latin + nums;
+        
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        
+        const rainDrops = [];
+        
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+        
+        const draw = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        };
+        
+        setInterval(draw, 30);
+        
+        // Terminal functionality
+        const commandInput = document.getElementById('command');
+        const outputDiv = document.querySelector('.output');
+        const progressBar = document.getElementById('progress');
+        const accessDenied = document.getElementById('accessDenied');
+        
+        // Simulate progress bar
+        setTimeout(() => {
+            progressBar.style.width = '25%';
+        }, 500);
+        
+        setTimeout(() => {
+            progressBar.style.width = '50%';
+        }, 1000);
+        
+        setTimeout(() => {
+            progressBar.style.width = '75%';
+        }, 1500);
+        
+        setTimeout(() => {
+            progressBar.style.width = '100%';
+        }, 2000);
+        
+        setTimeout(() => {
+            progressBar.style.display = 'none';
+        }, 2500);
+        
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim();
+                commandInput.value = '';
+                
+                // Add the command to output
+                outputDiv.innerHTML += `<p>> root@system:~$ ${command}</p>`;
+                
+                // Process commands
+                if (command === 'help') {
+                    outputDiv.innerHTML += `<p>Available commands:</p>
+                    <p>help - Show this help</p>
+                    <p>login - Attempt system login</p>
+                    <p>scan - Run network scan</p>
+                    <p>clear - Clear terminal</p>
+                    <p>AYUSH - Secret command</p>`;
+                } 
+                else if (command === 'login') {
+                    outputDiv.innerHTML += `<p>Entering login sequence...</p>
+                    <p>Username: root</p>
+                    <p>Password: ********</p>
+                    <p>> Authentication failed</p>`;
+                    
+                    // Show access denied
+                    document.querySelector('.terminal').style.display = 'none';
+                    accessDenied.style.display = 'block';
+                    
+                    // Reset after 3 seconds
+                    setTimeout(() => {
+                        accessDenied.style.display = 'none';
+                        document.querySelector('.terminal').style.display = 'block';
+                        commandInput.focus();
+                    }, 3000);
+                }
+                else if (command === 'scan') {
+                    outputDiv.innerHTML += `<p>Initiating network scan...</p>
+                    <p>> Found 3 vulnerable targets</p>
+                    <p>> Target 1: 192.168.1.1 - Router</p>
+                    <p>> Target 2: 192.168.1.15 - Smart TV</p>
+                    <p>> Target 3: 192.168.1.42 - Unknown device</p>`;
+                }
+                else if (command === 'clear') {
+                    outputDiv.innerHTML = '';
+                }
+                else if (command === 'AYUSH') {
+                    outputDiv.innerHTML += `<p style="color: #0f0; font-weight: bold;">SOORY BHAI 🗿🔥</p>`;
+                }
+                else if (command) {
+                    outputDiv.innerHTML += `<p>> Command not found: ${command}</p>`;
+                }
+                
+                // Scroll to bottom
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
